@@ -10,7 +10,7 @@ html,body{
     height:100%;
     overflow:hidden;
 
-    cursor:url("assets/cursor.png") 16 16, auto;
+    cursor:url("cursor.png") 16 16, auto;
 
     background:black;
 
