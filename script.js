@@ -1,8 +1,8 @@
 const sounds = [
 
-   "Scale in C Step 4.wav"
-   "Scale in C Step 3.wav"
-   "Scale in C Step 2.wav"
+   "Scale in C Step 4.wav",
+   "Scale in C Step 3.wav",
+   "Scale in C Step 2.wav",
    "Scale in C Step 1.wav"
 
 ];
