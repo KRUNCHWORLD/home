@@ -3,6 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Transmission is an experience inside the homepage, not a standalone destination.
+    if (window.top === window.self) {
+      window.location.replace("/");
+    }
+  </script>
   <meta name="theme-color" content="#080808">
   <meta name="description" content="4 for Future — A transmission from KRUNCH.WORLD is on its way.">
   <title>4 for Future — KRUNCH.WORLD</title>
