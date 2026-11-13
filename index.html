@@ -6,9 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script>
-  // Randomly enter the existing video experience or Transmission_001.
+  // Randomly display Transmission_001 inside the homepage.
+  // The browser stays at krunch.world, so every reload rerolls the experience.
   if (Math.random() < 0.75) {
-    window.location.replace("/transmission/");
+    window.addEventListener("DOMContentLoaded", function () {
+      const frame = document.createElement("iframe");
+      frame.src = "/transmission/";
+      frame.title = "KRUNCH.WORLD — Transmission_001";
+      frame.style.cssText = "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:999999;background:#000;";
+      document.body.appendChild(frame);
+    });
   }
 </script>
 
