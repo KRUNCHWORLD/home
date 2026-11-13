@@ -12,3 +12,22 @@ if (stage && window.matchMedia('(pointer:fine)').matches && !window.matchMedia('
     });
   });
 }
+
+// Start the transmission sound on the visitor's first tap or click.
+// Browsers require a user gesture before audio playback.
+let futureSoundStarted = false;
+function startFutureSound() {
+  if (futureSoundStarted) return;
+  const sound = new Audio("assets/FUTURE.wav");
+  sound.preload = "auto";
+  sound.volume = 0.85;
+  sound.play().then(() => {
+    futureSoundStarted = true;
+    window.removeEventListener("pointerdown", startFutureSound);
+    window.removeEventListener("keydown", startFutureSound);
+  }).catch((error) => {
+    console.warn("FUTURE audio could not start yet:", error);
+  });
+}
+window.addEventListener("pointerdown", startFutureSound);
+window.addEventListener("keydown", startFutureSound);
