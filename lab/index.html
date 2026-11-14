@@ -36,6 +36,29 @@ select{background:#414b3e;color:var(--paper);border:1px solid #77856d;border-rad
 .back{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--moss);padding-bottom:3px;font-size:9px;letter-spacing:.14em}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.controls{display:grid;grid-template-columns:1fr 1fr}.section,.row,.hint{grid-column:1/-1}}
 @media(max-width:520px){header{padding:0 15px}.edition{font-size:8px}main{padding:18px 12px}.controls{display:flex}.top{align-items:start;gap:10px;flex-direction:column}}
+
+/* Radical unlabeled instrument surface */
+header,.top,.visualHead,.visualFoot,.fileName,.section,.hint,.footnote,.control label,.value{display:none!important}
+main{max-width:1500px;padding:14px}
+.layout{grid-template-columns:minmax(0,1.65fr) minmax(280px,.8fr);gap:10px}
+.panel{border-radius:3px;border-color:#52604d;background:linear-gradient(145deg,#3e493c,#293229);box-shadow:0 18px 60px #10161088}
+#field{aspect-ratio:1.5/1}
+.filebar{justify-content:flex-end;gap:8px;border:0;padding:10px}
+.fileButton,button{width:42px;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:17px;letter-spacing:0}
+.controls{padding:18px 16px;gap:19px}
+.control{display:block;position:relative;min-height:34px}
+input[type=range]{position:absolute;inset:0;width:100%;height:34px;opacity:0;z-index:3;cursor:pointer}
+.worm-track{height:34px;position:relative;width:100%;overflow:visible;touch-action:pan-y}
+.worm-track svg{display:block;width:100%;height:34px;overflow:visible}
+.worm-track .groove-shadow{fill:none;stroke:#1b241c;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.worm-track .groove{fill:none;stroke:#71816a;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.worm-track .groove-light{fill:none;stroke:#a8b89b;stroke-width:1;stroke-linecap:round;opacity:.5}
+.worm-track .worm-knob{fill:#d6f45b;stroke:#293126;stroke-width:3;filter:drop-shadow(0 0 5px #d6f45b99)}
+select{width:100%;height:34px;background:#344034;border:1px solid #667360;color:#d6f45b}
+.row{gap:9px;justify-content:flex-end}
+.row button{flex:0 0 42px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.controls{display:flex;gap:14px}.control{width:100%}}
+@media(max-width:520px){main{padding:8px}.controls{padding:12px}.fileButton,button{width:38px;height:38px}}
 </style>
 </head>
 <body>
@@ -74,6 +97,30 @@ let ac=null,buffer=null,master=null,mediaDest=null,rec=null,chunks=[],lastBlob=n
 let active=false,scan=.5,frozen=false,lastSpawn=0,lastGrow=0,prev=0;
 let strands=[],webs=[],motes=[],growth=[],sources=new Set();
 const ids=['grain','density','pitch','jitter','spread','drift','level'];
+// Convert every linear range into a winding, carved groove with a thumb that follows its actual curve.
+function installWormTracks(){
+ ids.forEach((id,index)=>{
+  const input=el(id),wrap=document.createElement('div');wrap.className='worm-track';
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 600 34');svg.setAttribute('preserveAspectRatio','none');
+  const d=[
+   'M 8 18 C 48 18 54 5 104 9 S 154 29 204 20 S 268 5 316 12 S 380 29 424 20 S 510 7 592 16',
+   'M 8 13 C 58 4 72 29 126 21 S 184 4 234 12 S 286 29 344 21 S 410 4 460 12 S 536 27 592 17',
+   'M 8 20 C 54 29 80 6 130 12 S 188 27 238 19 S 292 4 346 12 S 412 29 462 19 S 540 6 592 14',
+   'M 8 15 C 48 4 78 26 122 20 S 176 6 226 14 S 286 29 334 20 S 394 5 448 13 S 530 28 592 16',
+   'M 8 19 C 62 27 72 7 126 13 S 190 28 244 19 S 302 5 354 13 S 414 27 470 18 S 540 7 592 15',
+   'M 8 12 C 52 23 78 4 132 12 S 194 30 248 20 S 304 5 360 13 S 424 29 476 19 S 540 6 592 16',
+   'M 8 18 C 60 5 84 28 140 19 S 200 6 254 13 S 314 28 368 19 S 432 5 484 13 S 548 25 592 15'
+  ][index];
+  ['groove-shadow','groove','groove-light'].forEach(cls=>{const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);p.setAttribute('class',cls);svg.appendChild(p);});
+  const knob=document.createElementNS('http://www.w3.org/2000/svg','circle');knob.setAttribute('r','7');knob.setAttribute('class','worm-knob');svg.appendChild(knob);
+  wrap.appendChild(svg);input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+  input.setAttribute('aria-label','Parameter '+(index+1));
+  const path=svg.querySelector('.groove');
+  const update=()=>{const t=(Number(input.value)-Number(input.min))/(Number(input.max)-Number(input.min));const p=path.getPointAtLength(path.getTotalLength()*t);knob.setAttribute('cx',p.x);knob.setAttribute('cy',p.y);};
+  input.addEventListener('input',update);window.addEventListener('resize',update);update();
+ });
+}
+
 const labels={grain:v=>v+' ms',density:v=>v+' / sec',pitch:v=>Number(v).toFixed(2)+'×',jitter:v=>v+'%',spread:v=>v+'%',drift:v=>v+'%',level:v=>v+'%'};
 ids.forEach(id=>el(id).addEventListener('input',()=>el(id+'V').textContent=labels[id](el(id).value)));
 function seed(){
@@ -157,6 +204,16 @@ function setScan(e){if(frozen)return;const r=canvas.getBoundingClientRect();scan
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);setScan(e);});canvas.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')setScan(e);});
 el('record').onclick=()=>{audio();if(!rec||rec.state==='inactive'){chunks=[];const type=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';rec=new MediaRecorder(mediaDest.stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};rec.onstop=()=>{lastBlob=new Blob(chunks,{type:rec.mimeType});el('export').disabled=false;el('record').textContent='● RECORD';};rec.start();el('record').textContent='■ STOP REC';}else rec.stop();};
 el('export').onclick=()=>{if(!lastBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(lastBlob);a.download='KRUNCH_GRANULAR_TAKE.webm';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+// Strip every textual UI label; retain only tactile, symbolic controls.
+document.querySelectorAll('label.control, .control label, .value').forEach(n=>n.remove());
+el('fileName').textContent='';
+document.querySelector('.fileButton').textContent='＋';
+el('start').textContent='▶';el('stop').textContent='■';
+el('freeze').textContent='❄';el('mutate').textContent='✳';
+el('record').textContent='●';el('export').textContent='↧';
+[...el('mode').options].forEach((o,i)=>o.textContent=['◉','◌','◎'][i]);
+el('mode').setAttribute('aria-label','Mode');
+installWormTracks();
 seed();requestAnimationFrame(frame);
 })();
 </script>
