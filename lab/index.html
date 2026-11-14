@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#303830">
+<meta name="description" content="An organic granular sound instrument by KRUNCH.WORLD.">
+<title>GRANULAR LAB — KRUNCH.WORLD</title>
+<style>
+:root{--paper:#e8ead8;--moss:#9ab68b;--acid:#d6f45b;--ink:#303830;--muted:#b5bead;--edge:#667360}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#252c26;color:var(--paper);font-family:Arial,Helvetica,sans-serif}
+body{background:radial-gradient(ellipse at 50% 35%,#4a5545,#303830 58%,#222822)}
+header{height:66px;padding:0 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #697463;font-size:11px;letter-spacing:.2em}
+.brand{font-weight:800}.brand span{color:var(--acid)}.edition{color:var(--muted);font-size:9px}
+main{max-width:1280px;margin:auto;padding:26px 24px 38px}
+h1{font-size:clamp(28px,4vw,44px);letter-spacing:.03em;margin:0}.sub{font-size:10px;color:var(--muted);letter-spacing:.18em;margin-top:7px}
+.top{display:flex;align-items:end;justify-content:space-between;margin-bottom:18px}.status{font-size:10px;letter-spacing:.16em;color:var(--moss)}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(290px,.9fr);gap:16px}
+.panel{border:1px solid var(--edge);border-radius:14px;overflow:hidden;background:linear-gradient(145deg,#414b3e,#303830);box-shadow:0 18px 50px #10161066}
+.visualHead{padding:14px 16px;border-bottom:1px solid #586451;display:flex;justify-content:space-between;font-size:9px;letter-spacing:.18em;color:var(--muted)}
+#field{display:block;width:100%;aspect-ratio:1.5/1;cursor:crosshair;background:#303830}
+.visualFoot{display:flex;justify-content:space-between;padding:10px 15px;border-top:1px solid #586451;color:var(--muted);font-size:9px;letter-spacing:.12em}
+.filebar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:14px 15px;border-top:1px solid #586451}
+input[type=file]{display:none}.fileName{font-size:10px;color:var(--muted);flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button,.fileButton{border:1px solid #77856d;border-radius:7px;background:#414b3e;color:var(--paper);padding:10px 12px;font-size:9px;font-weight:bold;letter-spacing:.12em;cursor:pointer}
+button:hover,.fileButton:hover{border-color:var(--acid);color:var(--acid)}button.primary{background:var(--acid);border-color:var(--acid);color:#293126}button:disabled{opacity:.35;cursor:not-allowed}
+.controls{padding:16px;display:flex;flex-direction:column;gap:14px}
+.section{font-size:9px;letter-spacing:.2em;color:var(--acid);padding-bottom:8px;border-bottom:1px solid #697463}
+.control{display:grid;grid-template-columns:1fr auto;gap:7px 10px;align-items:center}
+.control label{font-size:9px;letter-spacing:.12em;color:#e1e5d5}.value{font-size:10px;color:var(--acid);font-variant-numeric:tabular-nums}
+input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--acid);margin:0}
+select{background:#414b3e;color:var(--paper);border:1px solid #77856d;border-radius:6px;padding:8px;font-size:10px}
+.row{display:flex;gap:8px}.row button{flex:1}
+.hint,.footnote{font-size:10px;line-height:1.55;color:var(--muted)}
+.footnote{margin-top:14px}
+.back{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--moss);padding-bottom:3px;font-size:9px;letter-spacing:.14em}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.controls{display:grid;grid-template-columns:1fr 1fr}.section,.row,.hint{grid-column:1/-1}}
+@media(max-width:520px){header{padding:0 15px}.edition{font-size:8px}main{padding:18px 12px}.controls{display:flex}.top{align-items:start;gap:10px;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="brand">KRUNCH<span>.</span>WORLD / AUDIO LAB</div><div class="edition">EXPERIMENTAL INSTRUMENT · 004</div></header>
+<main>
+<div class="top"><div><h1>GRANULAR LAB</h1><div class="sub">A LIVING FIELD OF MICRO-SOUND</div></div><a class="back" href="/">← BACK TO KRUNCH.WORLD</a></div>
+<div class="layout">
+<section class="panel">
+<div class="visualHead"><span>LICHEN FIELD / LIVE GRAIN ECOLOGY</span><span id="fieldState">DORMANT</span></div>
+<canvas id="field" width="900" height="600" aria-label="Abstract lichen and web structure"></canvas>
+<div class="visualFoot"><span>MOVE / TOUCH TO POSITION</span><span>SCAN FIELD · <b id="scanValue">50%</b></span></div>
+<div class="filebar"><label class="fileButton" for="audioFile">LOAD AUDIO</label><input id="audioFile" type="file" accept="audio/*"><span class="fileName" id="fileName">NO SOURCE LOADED</span><button class="primary" id="start" disabled>START</button><button id="stop" disabled>STOP</button></div>
+</section>
+<section class="panel"><div class="controls">
+<div class="section">GRAIN ENGINE</div>
+<div class="control"><label for="grain">GRAIN SIZE</label><span class="value" id="grainV">120 ms</span><input id="grain" type="range" min="20" max="800" value="120"></div>
+<div class="control"><label for="density">DENSITY</label><span class="value" id="densityV">18 / sec</span><input id="density" type="range" min="1" max="80" value="18"></div>
+<div class="control"><label for="pitch">PITCH</label><span class="value" id="pitchV">1.00×</span><input id="pitch" type="range" min=".25" max="2.5" step=".01" value="1"></div>
+<div class="control"><label for="jitter">PITCH JITTER</label><span class="value" id="jitterV">0%</span><input id="jitter" type="range" min="0" max="100" value="0"></div>
+<div class="section">SPATIAL BEHAVIOUR</div>
+<div class="control"><label for="mode">GRAIN POSITION MODE</label><select id="mode"><option value="local">LOCAL · around scan point</option><option value="scatter">SCATTER · wide field</option><option value="full">FULL SAMPLE · anywhere</option></select></div>
+<div class="control"><label for="spread">POSITION SPREAD</label><span class="value" id="spreadV">20%</span><input id="spread" type="range" min="0" max="100" value="20"></div>
+<div class="control"><label for="drift">SCAN DRIFT</label><span class="value" id="driftV">0%</span><input id="drift" type="range" min="0" max="100" value="0"></div>
+<div class="control"><label for="level">OUTPUT</label><span class="value" id="levelV">75%</span><input id="level" type="range" min="0" max="100" value="75"></div>
+<div class="row"><button id="freeze">FREEZE SCAN</button><button id="mutate">MUTATE</button></div>
+<div class="row"><button id="record">● RECORD</button><button id="export" disabled>EXPORT TAKE</button></div>
+<div class="hint">Move across the field to reposition the scan point. Drift is off by default. Freeze locks the scan point while grains continue to play. As density rises, lichen filaments illuminate and new growth appears around the scan area.</div>
+</div></section>
+</div>
+<div class="footnote">Density controls how many grains are launched per second. Grain Size controls their length. High density and long grains create a dense overlapping cloud. Try LOCAL mode first; FULL SAMPLE searches the entire source.</div>
+</main>
+<script>
+(()=>{
+const el=id=>document.getElementById(id),canvas=el('field'),ctx=canvas.getContext('2d');
+let ac=null,buffer=null,master=null,mediaDest=null,rec=null,chunks=[],lastBlob=null;
+let active=false,scan=.5,frozen=false,lastSpawn=0,lastGrow=0,prev=0;
+let strands=[],webs=[],motes=[],growth=[],sources=new Set();
+const ids=['grain','density','pitch','jitter','spread','drift','level'];
+const labels={grain:v=>v+' ms',density:v=>v+' / sec',pitch:v=>Number(v).toFixed(2)+'×',jitter:v=>v+'%',spread:v=>v+'%',drift:v=>v+'%',level:v=>v+'%'};
+ids.forEach(id=>el(id).addEventListener('input',()=>el(id+'V').textContent=labels[id](el(id).value)));
+function seed(){
+ strands=[];webs=[];growth=[];
+ for(let c=0;c<14;c++){
+  const x=65+Math.random()*770,y=45+Math.random()*510;
+  let tips=[{x,y,a:Math.random()*Math.PI*2,life:70+Math.random()*90,depth:0}];
+  for(let i=0;i<tips.length&&strands.length<2500;i++){
+   const t=tips[i];if(t.life<=0)continue;
+   const a=t.a+(Math.random()-.5)*.75,len=3+Math.random()*7,nx=t.x+Math.cos(a)*len,ny=t.y+Math.sin(a)*len;
+   strands.push({x:t.x,y:t.y,nx,ny,seed:Math.random()});
+   if(Math.random()<.11&&t.depth<4)tips.push({x:nx,y:ny,a:a+(Math.random()-.5)*1.4,life:t.life*.7,depth:t.depth+1});
+   if(Math.random()<.96)tips.push({x:nx,y:ny,a,life:t.life-1,depth:t.depth});
+  }
+ }
+ for(let c=0;c<9;c++){
+  const x=70+Math.random()*760,y=45+Math.random()*500,r=35+Math.random()*95,n=8+Math.floor(Math.random()*9),rings=3+Math.floor(Math.random()*4);
+  for(let s=0;s<n;s++){let pts=[];for(let j=0;j<=rings;j++){const a=s/n*Math.PI*2,rr=r*j/rings*(.82+Math.random()*.35);pts.push({x:x+Math.cos(a)*rr,y:y+Math.sin(a)*rr});}webs.push(pts);}
+  for(let j=1;j<=rings;j++){let pts=[];for(let s=0;s<=n;s++){const a=s/n*Math.PI*2,rr=r*j/rings*(.82+Math.random()*.35);pts.push({x:x+Math.cos(a)*rr,y:y+Math.sin(a)*rr});}webs.push(pts);}
+ }
+}
+function grow(){
+ if(!active)return;
+ const x=scan*900,y=300+Math.sin(scan*8)*72;
+ let nearest=null,best=1e9;
+ for(const n of strands){const d=(n.nx-x)**2+(n.ny-y)**2;if(d<best){best=d;nearest=n;}}
+ if(!nearest||best>120000)return;
+ const a=Math.atan2(nearest.ny-nearest.y,nearest.nx-nearest.x)+(Math.random()-.5)*1.7;
+ const len=7+Math.random()*16,nx=nearest.nx+Math.cos(a)*len,ny=nearest.ny+Math.sin(a)*len;
+ const node={x:nearest.nx,y:nearest.ny,nx,ny,seed:Math.random(),born:performance.now()};
+ strands.push(node);growth.push(node);
+ if(strands.length>3400){const old=strands.findIndex(n=>!n.born);if(old>=0)strands.splice(old,1);}
+}
+function draw(now){
+ const W=900,H=600;ctx.clearRect(0,0,W,H);
+ const bg=ctx.createRadialGradient(450,300,12,450,300,540);bg.addColorStop(0,'#4a5545');bg.addColorStop(.55,'#343e34');bg.addColorStop(1,'#252c26');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ const energy=active?Math.min(1,Number(el('density').value)/58):.07;
+ webs.forEach((pts,i)=>{ctx.beginPath();pts.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle='rgba(232,234,216,'+(.07+energy*.08)+')';ctx.lineWidth=.7;ctx.stroke();});
+ strands.forEach((n,i)=>{
+  const dx=n.nx-scan*W,dy=n.ny-300,near=Math.exp(-(dx*dx+dy*dy)/(18000+energy*65000));
+  const intensity=Math.min(1,near*(.18+energy)*(.55+.45*Math.sin(now*.002+i*.17)));
+  const age=n.born?Math.min(1,(now-n.born)/900):1;
+  ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(n.nx,n.ny);
+  ctx.strokeStyle=intensity>.3?'rgba(214,244,91,'+(.2+intensity*.65*age)+')':'rgba(201,216,190,'+(.12+intensity*.34)+')';
+  ctx.lineWidth=.6+intensity*1.3;ctx.stroke();
+ });
+ motes=motes.filter(p=>now-p.t<p.life);
+ motes.forEach(p=>{const f=1-(now-p.t)/p.life,x=p.x*W,y=p.y*H,l=8+energy*24;ctx.beginPath();ctx.moveTo(x-l/2,y);ctx.quadraticCurveTo(x,y-l*.4,x+l/2,y+2);ctx.strokeStyle='rgba(214,244,91,'+(.7*f)+')';ctx.lineWidth=1.5*f;ctx.stroke();ctx.beginPath();ctx.arc(x,y,1+2*f,0,Math.PI*2);ctx.fillStyle='rgba(240,240,220,'+f+')';ctx.fill();});
+ const x=scan*W,y=300+Math.sin(scan*8)*72,r=22+energy*90,halo=ctx.createRadialGradient(x,y,1,x,y,r);
+ halo.addColorStop(0,'rgba(214,244,91,'+(.13+energy*.17)+')');halo.addColorStop(1,'rgba(214,244,91,0)');ctx.fillStyle=halo;ctx.fillRect(x-r,y-r,r*2,r*2);
+ ctx.beginPath();ctx.arc(x,y,3.5+energy*2,0,Math.PI*2);ctx.fillStyle='#d6f45b';ctx.shadowColor='#d6f45b';ctx.shadowBlur=8+energy*18;ctx.fill();ctx.shadowBlur=0;
+ el('scanValue').textContent=Math.round(scan*100)+'%';el('fieldState').textContent=active?'FIELD / ACTIVITY '+Math.round(energy*100)+'%':'DORMANT';
+}
+function frame(now){
+ if(active&&buffer){
+  const interval=1000/Number(el('density').value);if(now-lastSpawn>=interval){spawn();lastSpawn=now;}
+  const drift=Number(el('drift').value);if(!frozen&&drift>0)scan=(scan+drift/100*.10*((now-(prev||now))/1000))%1;
+  if(!frozen&&energyLevel()>.28&&now-lastGrow>Math.max(100,650-Number(el('density').value)*6)){grow();lastGrow=now;}
+ }
+ prev=now;draw(now);requestAnimationFrame(frame);
+}
+function energyLevel(){return Math.min(1,Number(el('density').value)/58);}
+function audio(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=Number(el('level').value)/100;master.connect(ac.destination);mediaDest=ac.createMediaStreamDestination();master.connect(mediaDest);}}
+function spawn(){
+ if(!buffer)return;
+ const dur=Number(el('grain').value)/1000,base=Number(el('pitch').value),jit=Number(el('jitter').value)/100,mode=el('mode').value,spread=Number(el('spread').value)/100;
+ let pos=scan;if(mode==='local')pos+=(Math.random()-.5)*.025*spread;else if(mode==='scatter')pos+=(Math.random()-.5)*.45*spread;else pos=Math.random();
+ pos=Math.max(0,Math.min(.999,pos));const offset=pos*buffer.duration,rate=Math.max(.1,base*(1+(Math.random()-.5)*jit*.8)),out=Math.min(dur,(buffer.duration-offset)/rate);if(out<=.008)return;
+ const src=ac.createBufferSource(),gain=ac.createGain(),pan=ac.createStereoPanner(),t=ac.currentTime,fade=Math.min(.018,out*.22);
+ src.buffer=buffer;src.playbackRate.value=rate;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(1,t+fade);gain.gain.setValueAtTime(1,t+Math.max(fade,out-fade));gain.gain.linearRampToValueAtTime(0,t+out);pan.pan.value=(Math.random()-.5)*.8;
+ src.connect(gain);gain.connect(pan);pan.connect(master);src.start(t,offset,out*rate);src.stop(t+out+.025);sources.add(src);src.onended=()=>{sources.delete(src);try{src.disconnect();gain.disconnect();pan.disconnect();}catch(e){}};
+ motes.push({x:pos,y:.18+Math.random()*.64,t:performance.now(),life:dur*1000+180});
+}
+el('audioFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;audio();await ac.resume();try{buffer=await ac.decodeAudioData(await f.arrayBuffer());el('fileName').textContent=f.name;el('start').disabled=false;el('fieldState').textContent='SOURCE READY';}catch(err){el('fileName').textContent='COULD NOT DECODE FILE';}});
+el('start').onclick=async()=>{if(!buffer)return;audio();await ac.resume();active=true;lastSpawn=0;el('start').disabled=true;el('stop').disabled=false;};
+el('stop').onclick=()=>{active=false;el('start').disabled=!buffer;el('stop').disabled=true;el('fieldState').textContent='STANDBY';};
+el('level').addEventListener('input',()=>{if(master)master.gain.setTargetAtTime(Number(el('level').value)/100,ac.currentTime,.02);});
+el('freeze').onclick=()=>{frozen=!frozen;el('freeze').textContent=frozen?'UNFREEZE SCAN':'FREEZE SCAN';};
+el('mutate').onclick=()=>{el('grain').value=80+Math.floor(Math.random()*400);el('density').value=8+Math.floor(Math.random()*45);el('pitch').value=(.55+Math.random()*1.3).toFixed(2);el('jitter').value=Math.floor(Math.random()*65);el('spread').value=10+Math.floor(Math.random()*85);ids.forEach(id=>el(id+'V').textContent=labels[id](el(id).value));};
+function setScan(e){if(frozen)return;const r=canvas.getBoundingClientRect();scan=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));}
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);setScan(e);});canvas.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')setScan(e);});
+el('record').onclick=()=>{audio();if(!rec||rec.state==='inactive'){chunks=[];const type=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';rec=new MediaRecorder(mediaDest.stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};rec.onstop=()=>{lastBlob=new Blob(chunks,{type:rec.mimeType});el('export').disabled=false;el('record').textContent='● RECORD';};rec.start();el('record').textContent='■ STOP REC';}else rec.stop();};
+el('export').onclick=()=>{if(!lastBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(lastBlob);a.download='KRUNCH_GRANULAR_TAKE.webm';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+seed();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
