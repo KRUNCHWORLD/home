@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#303830">
 <meta name="description" content="An organic granular sound instrument by KRUNCH.WORLD.">
-<title>GRANULAR LAB — KRUNCH.WORLD</title>
+<title></title>
 <style>
 :root{--paper:#e8ead8;--moss:#9ab68b;--acid:#d6f45b;--ink:#303830;--muted:#b5bead;--edge:#667360}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#252c26;color:var(--paper);font-family:Arial,Helvetica,sans-serif}
@@ -83,8 +83,8 @@ select{width:100%;height:34px;background:#344034;border:1px solid #667360;color:
 <div class="control"><label for="spread">POSITION SPREAD</label><span class="value" id="spreadV">20%</span><input id="spread" type="range" min="0" max="100" value="20"></div>
 <div class="control"><label for="drift">SCAN DRIFT</label><span class="value" id="driftV">0%</span><input id="drift" type="range" min="0" max="100" value="0"></div>
 <div class="control"><label for="level">OUTPUT</label><span class="value" id="levelV">75%</span><input id="level" type="range" min="0" max="100" value="75"></div>
-<div class="row"><button id="freeze">FREEZE SCAN</button><button id="mutate">MUTATE</button></div>
-<div class="row"><button id="record">● RECORD</button><button id="export" disabled>EXPORT TAKE</button></div>
+<div class="row"><button id="freeze" aria-label="Freeze" aria-pressed="false">❄</button><button id="mutate">MUTATE</button></div>
+<div class="row"><button id="record" aria-label="Record">●</button><button id="export" disabled>EXPORT TAKE</button></div>
 <div class="hint">Move across the field to reposition the scan point. Drift is off by default. Freeze locks the scan point while grains continue to play. As density rises, lichen filaments illuminate and new growth appears around the scan area.</div>
 </div></section>
 </div>
@@ -198,7 +198,7 @@ el('audioFile').addEventListener('change',async e=>{const f=e.target.files[0];if
 el('start').onclick=async()=>{if(!buffer)return;audio();await ac.resume();active=true;lastSpawn=0;el('start').disabled=true;el('stop').disabled=false;};
 el('stop').onclick=()=>{active=false;el('start').disabled=!buffer;el('stop').disabled=true;el('fieldState').textContent='STANDBY';};
 el('level').addEventListener('input',()=>{if(master)master.gain.setTargetAtTime(Number(el('level').value)/100,ac.currentTime,.02);});
-el('freeze').onclick=()=>{frozen=!frozen;el('freeze').textContent=frozen?'UNFREEZE SCAN':'FREEZE SCAN';};
+el('freeze').onclick=()=>{frozen=!frozen;el('freeze').textContent=frozen?'❅':'❄';el('freeze').setAttribute('aria-pressed',String(frozen));};
 el('mutate').onclick=()=>{el('grain').value=80+Math.floor(Math.random()*400);el('density').value=8+Math.floor(Math.random()*45);el('pitch').value=(.55+Math.random()*1.3).toFixed(2);el('jitter').value=Math.floor(Math.random()*65);el('spread').value=10+Math.floor(Math.random()*85);ids.forEach(id=>el(id+'V').textContent=labels[id](el(id).value));};
 function setScan(e){
  if(frozen)return;
@@ -216,7 +216,7 @@ function setScan(e){
  scan=Math.max(0,Math.min(1,bx/900));scanY=Math.max(0,Math.min(1,by/600));
 }
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);setScan(e);});canvas.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')setScan(e);});
-el('record').onclick=()=>{audio();if(!rec||rec.state==='inactive'){chunks=[];const type=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';rec=new MediaRecorder(mediaDest.stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};rec.onstop=()=>{lastBlob=new Blob(chunks,{type:rec.mimeType});el('export').disabled=false;el('record').textContent='● RECORD';};rec.start();el('record').textContent='■ STOP REC';}else rec.stop();};
+el('record').onclick=()=>{audio();if(!rec||rec.state==='inactive'){chunks=[];const type=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';rec=new MediaRecorder(mediaDest.stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};rec.onstop=()=>{lastBlob=new Blob(chunks,{type:rec.mimeType});el('export').disabled=false;el('record').textContent='●';};rec.start();el('record').textContent='■';}else rec.stop();};
 el('export').onclick=()=>{if(!lastBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(lastBlob);a.download='KRUNCH_GRANULAR_TAKE.webm';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
 // Strip every textual UI label; retain only tactile, symbolic controls.
 document.querySelectorAll('label.control, .control label, .value').forEach(n=>n.remove());
