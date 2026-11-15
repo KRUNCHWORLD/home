@@ -90,10 +90,11 @@ select{width:100%;height:34px;background:#344034;border:1px solid #667360;color:
 </div>
 <div class="footnote">Density controls how many grains are launched per second. Grain Size controls their length. High density and long grains create a dense overlapping cloud. Try LOCAL mode first; FULL SAMPLE searches the entire source.</div>
 </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
 <script>
 (()=>{
 const el=id=>document.getElementById(id),canvas=el('field'),ctx=canvas.getContext('2d');
-let ac=null,buffer=null,master=null,mediaDest=null,rec=null,chunks=[],lastBlob=null;
+let ac=null,buffer=null,master=null,mediaDest=null,recorderNode=null,silentGain=null,recording=false,pcmLeft=[],pcmRight=[],lastBlob=null;
 let active=false,scan=.5,scanY=.5,frozen=false,lastSpawn=0,lastGrow=0,prev=0;
 let strands=[],webs=[],motes=[],growth=[],sources=new Set();
 const ids=['grain','density','pitch','jitter','spread','drift','level'];
@@ -183,7 +184,7 @@ function frame(now){
  prev=now;draw(now);requestAnimationFrame(frame);
 }
 function energyLevel(){return Math.min(1,Number(el('density').value)/58);}
-function audio(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=Number(el('level').value)/100;master.connect(ac.destination);mediaDest=ac.createMediaStreamDestination();master.connect(mediaDest);}}
+function audio(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=Number(el('level').value)/100;master.connect(ac.destination);mediaDest=ac.createMediaStreamDestination();master.connect(mediaDest);recorderNode=ac.createScriptProcessor(4096,2,2);silentGain=ac.createGain();silentGain.gain.value=0;master.connect(recorderNode);recorderNode.connect(silentGain);silentGain.connect(ac.destination);recorderNode.onaudioprocess=e=>{if(!recording)return;const l=e.inputBuffer.getChannelData(0),r=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):l;pcmLeft.push(new Float32Array(l));pcmRight.push(new Float32Array(r));};}}
 function spawn(){
  if(!buffer)return;
  const dur=Number(el('grain').value)/1000,base=Number(el('pitch').value),jit=Number(el('jitter').value)/100,mode=el('mode').value,spread=Number(el('spread').value)/100;
@@ -216,8 +217,10 @@ function setScan(e){
  scan=Math.max(0,Math.min(1,bx/900));scanY=Math.max(0,Math.min(1,by/600));
 }
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);setScan(e);});canvas.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')setScan(e);});
-el('record').onclick=()=>{audio();if(!rec||rec.state==='inactive'){chunks=[];const type=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';rec=new MediaRecorder(mediaDest.stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};rec.onstop=()=>{lastBlob=new Blob(chunks,{type:rec.mimeType});el('export').disabled=false;el('record').textContent='●';};rec.start();el('record').textContent='■';}else rec.stop();};
-el('export').onclick=()=>{if(!lastBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(lastBlob);a.download='KRUNCH_GRANULAR_TAKE.webm';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+function floatTo16BitPCM(input){const out=new Int16Array(input.length);for(let i=0;i<input.length;i++){const s=Math.max(-1,Math.min(1,input[i]));out[i]=s<0?s*32768:s*32767;}return out;}
+function buildMp3(){if(!window.lamejs){el('record').textContent='!';return;}const total=pcmLeft.reduce((n,a)=>n+a.length,0),left=new Float32Array(total),right=new Float32Array(total);let offset=0;for(let i=0;i<pcmLeft.length;i++){left.set(pcmLeft[i],offset);right.set(pcmRight[i],offset);offset+=pcmLeft[i].length;}const encoder=new lamejs.Mp3Encoder(2,ac.sampleRate,192),l=floatTo16BitPCM(left),r=floatTo16BitPCM(right),parts=[],block=1152;for(let i=0;i<l.length;i+=block){const mp3=encoder.encodeBuffer(l.subarray(i,i+block),r.subarray(i,i+block));if(mp3.length)parts.push(new Uint8Array(mp3));}const end=encoder.flush();if(end.length)parts.push(new Uint8Array(end));lastBlob=new Blob(parts,{type:'audio/mpeg'});pcmLeft=[];pcmRight=[];el('export').disabled=false;el('record').textContent='●';}
+el('record').onclick=()=>{audio();if(!recording){if(!window.lamejs){el('record').textContent='!';return;}pcmLeft=[];pcmRight=[];recording=true;el('export').disabled=true;el('record').textContent='■';}else{recording=false;el('record').textContent='◌';setTimeout(buildMp3,30);}};
+el('export').onclick=()=>{if(!lastBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(lastBlob);a.download='KRUNCH_GRANULAR_TAKE.mp3';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);};
 // Strip every textual UI label; retain only tactile, symbolic controls.
 document.querySelectorAll('label.control, .control label, .value').forEach(n=>n.remove());
 el('fileName').textContent='';
